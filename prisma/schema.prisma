@@ -2,29 +2,351 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
+}
+
+// comment when creating docker container
+// used to generate ER Daigrams
+generator erd {
+    provider                  = "prisma-erd-generator"
+    output                    = "ERD.pdf"
+    // tableOnly = true    // shows only table names instead of fields inside table
+    // ignoreEnums = true  // enum entities will be hidden 
+    includeRelationFromFields = true // to show userId and productId fields 
+    // erdDebug = true
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
+
+// const current_date_unix = Date.parse(new Date()) / 1000;
+// console.log(current_date_unix);
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  username String?
-  password String
+    id Int @id @default(autoincrement())
 
-  role RoleEnumType? @default(user)
+    email         String  @unique
+    emailVerified Boolean
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    mobile         Int     @unique
+    mobileVerified Boolean
 
-  @@map(name: "users")
+    fullname String
+    username String  @unique
+    password String
+    image    String?
+
+    // registrationCompleted Boolean @default(false)
+
+    role          RoleTypeEnum    @default(user)
+    accountStatus AccountTypeEnum @default(active)
+    language      LanguageEnum    @default(en)
+    // LogRetention LogRetention @default(monthly)
+
+    timezone  String // timezones (Asia, Africa)
+    createdAt String
+    updatedAt String?
+    // deletedAt String?
+
+    Token Token[]
+
+    UserOTP UserOTP[]
+
+    LoginActivity UserLoginActivity[]
+    // LogRetention  LogRetention?
+
+    NotificationPreference NotificationPreference?
+    Notifications          Notifications[]
+
+    // UserSubscriptions  UserSubscriptions[]
+    // UserPaymentMethods UserPaymentMethods[]
+    // UserSubscriptions  UserSubscriptions[]
+    // UserPaymentMethods UserPaymentMethods[]
+
+    @@index([id, username])
+    @@map(name: "users")
 }
 
-enum RoleEnumType {
-  user
-  admin
+enum RoleTypeEnum {
+    user
+    // admin
+    // seo
+    // developer
 }
+
+enum AccountTypeEnum {
+    active
+    deactive
+    banned
+}
+
+enum LanguageEnum {
+    en
+    ar
+    hi
+    fr
+    pt
+}
+
+model Token {
+    id Int @id @default(autoincrement())
+
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId Int
+
+    provider AuthProviderEnum
+    // type     TokenTypeEnum
+
+    token Json // access + refresh
+
+    tokenExpiresIn String
+    createdAt      String
+    updatedAt      String?
+
+    @@index([userId])
+    @@map(name: "user_token")
+}
+
+enum AuthProviderEnum {
+    google
+    facebook
+}
+
+// enum TokenTypeEnum {
+//     access
+//     refresh
+// }
+
+model UserLoginActivity {
+    id Int @id @default(autoincrement())
+
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId Int
+
+    source   String? // from headers
+    ip       String
+    country  String?
+    state    String?
+    city     String?
+    platform String?
+    browser  String?
+    device   String?
+
+    // loginAttempts Int // how many times tried for login
+
+    // timeSpent String
+    createdAt String
+    updatedAt String?
+
+    @@map(name: "user_login_activity")
+}
+
+// model LogRetention {
+//     id Int @id @default(autoincrement())
+
+//     user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//     userId Int  @unique
+
+//     LogRetentionEnum LogRetentionEnum @default(monthly)
+
+//     createdAt String
+//     updatedAt String?
+
+//     @@map(name: "user-log-retention")
+// }
+
+// enum LogRetentionEnum {
+//     weekly
+//     monthly
+//     quarterly
+//     halfYearly
+//     yearly
+// }
+
+model UserOTP {
+    id Int @id @default(autoincrement())
+
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId Int
+
+    otp String @unique
+    // medium MediumTypeEnum[] @default([email])
+
+    expiresAt String
+    createdAt String
+
+    @@map(name: "user_otp")
+}
+
+enum MediumTypeEnum {
+    sms
+    mobile
+    email
+    whatsapp
+    web
+}
+
+model NotificationPreference {
+    id Int @id @default(autoincrement())
+
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId Int  @unique
+
+    important   MediumTypeEnum[] @default([mobile])
+    promotional MediumTypeEnum[] @default([email])
+    notice      MediumTypeEnum[] @default([email])
+    billing     MediumTypeEnum[] @default([mobile])
+    updates     MediumTypeEnum[] @default([email])
+
+    createdAt String
+    updatedAt String?
+
+    @@map(name: "notification_preference")
+}
+
+model Notifications {
+    id Int @id @default(autoincrement())
+
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId Int
+
+    notificationType NotificationTypeEnum[]
+
+    title   String
+    message String
+    seen    Boolean
+
+    // status     NotificationStatus @default(pending)
+    // processing Boolean
+
+    createdAt String
+    updatedAt String?
+
+    @@map(name: "notifications")
+}
+
+enum NotificationTypeEnum {
+    promotional
+    important
+    notice
+    billing
+    updates
+}
+
+// enum NotificationStatus {
+//     pending
+//     delivered
+//     failed
+// }
+
+// model UserSubscriptions {
+//     id Int @id @default(autoincrement())
+
+//     amount Int
+
+//     user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//     userId Int
+
+//     template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+//     templateId Int
+
+//     modulePricing   ModulePricing @relation(fields: [modulePricingId], references: [id], onDelete: Cascade)
+//     modulePricingId Int
+
+//     UserPayment UserPayment[]
+
+//     validUpto String
+//     createdAt String
+//     updatedAt String?
+// }
+
+// model ModulePricing {
+//     id Int @id @default(autoincrement())
+
+//     name          String
+//     features      Json
+//     price         Int
+//     // recommendedIn RecommendedInEnum[]
+
+//     createdAt String
+//     updatedAt String?
+
+//     UserSubscriptions UserSubscriptions[]
+// }
+
+// enum RecommendedInEnum {
+//     eCommerce
+//     blog
+//     landingPages
+//     portfolio
+// }
+
+// model UserPayment {
+//     id Int @id @default(autoincrement())
+
+//     userSubscriptions   UserSubscriptions @relation(fields: [userSubscriptionsId], references: [id], onDelete: Cascade)
+//     userSubscriptionsId Int
+
+//     userPaymentMethods  UserPaymentMethods @relation(fields: [userPaymentMethodId], references: [id], onDelete: Cascade)
+//     userPaymentMethodId Int
+
+//     amount          Int
+//     transactionId   String
+//     paymentVerified Boolean
+
+//     currency CurrencyEnum
+//     status   PaymentStatusEnum @default(pending)
+
+//     createdAt String
+//     updatedAt String?
+// }
+
+// model UserPaymentMethods {
+//     id Int @id @default(autoincrement())
+
+//     user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//     userId Int
+
+//     method PaymentMethodEnum
+
+//     methodKey    String
+//     methodSecret String
+
+//     UserPayment UserPayment[]
+
+//     createdAt String
+//     updatedAt String?
+// }
+
+// enum PaymentStatusEnum {
+//     pending
+//     success
+//     failed
+//     processing
+// }
+
+// enum PaymentMethodEnum {
+//     paytm
+//     razorpay
+//     googlePay
+//     stripe
+// }
+
+// enum CurrencyEnum {
+//     dollar
+//     rupee
+//     euro
+// }
+
+// model Template {
+//     id                Int                 @id @default(autoincrement())
+//     UserSubscriptions UserSubscriptions[]
+// }
+
+// onDelete: Cascade - Deleting a referenced record will trigger the deletion of referencing record.
+
+// @@id([authorId, postId], name: "authorPostId") - 
+// 		Using the @@id you indicated to prisma that the NewTable had a primary key composed by this two fields,
+// 		We've also passed it an optional name parameter to name the newly created field
