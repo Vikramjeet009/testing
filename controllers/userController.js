@@ -1,5 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import fs from "fs";
+import AWS from "aws-sdk";
+import archiver from "archiver";
 
 import { createAccessToken, hashPassword } from "../utils/index.js";
 
@@ -175,4 +178,157 @@ export const updateProfile = async (ctx) => {
     ctx.body = error.message;
     ctx.status = 500;
   }
+};
+
+export const uploadImage = async (ctx) => {
+  // const { filesData: files, folderName } = ctx.request.body;
+  const files = ctx.request.files.file; // file is the attribute/input name in your frontend app "Form-Data"
+  // console.log("files : ", files);
+
+  const myFiles = Array.isArray(files)
+    ? files
+    : typeof files === "object"
+    ? [files]
+    : null; // to handle single file and multiple files
+  // console.log("myFiles : ", myFiles);
+
+  if (myFiles) {
+    try {
+      const filePromises = myFiles.map(async (file) => {
+        const s3 = new AWS.S3({
+          region: process.env.AWS_S3_BUCKET_REGION,
+          accessKeyId: process.env.AWS_S3_ACCESS_KEY,
+          secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+        });
+
+        //   var { path, name, type } = file;
+        var { filepath, newFilename, originalFilename, mimetype } = file;
+        // console.log(filepath, newFilename, originalFilename, mimetype)
+
+        const body = fs.createReadStream(filepath);
+
+        const params = {
+          Bucket: `${process.env.AWS_S3_BUCKET_NAME}/vikram`,
+          Key: originalFilename,
+          Body: body,
+          ContentType: mimetype,
+        };
+
+        // const data = await s3.upload(params);
+        // console.log("data : ", data);
+
+        return new Promise(function (resolve, reject) {
+          s3.upload(params, function (error, data) {
+            if (error) {
+              reject(error);
+              return;
+            }
+
+            if (data) {
+              console.log(data);
+              // {
+              //   ETag: '"522c144642b3596cc5457f600cc815ad"',
+              //   ServerSideEncryption: 'AES256',
+              //   Location: 'https://qafto-testing-s3-bucket.s3.amazonaws.com/Screenshot%20from%202023-06-21%2009-28-08.png',
+              //   key: 'Screenshot from 2023-06-21 09-28-08.png',
+              //   Key: 'Screenshot from 2023-06-21 09-28-08.png',
+              //   Bucket: 'qafto-testing-s3-bucket'
+              // }
+              resolve(data);
+              return;
+            }
+          });
+        });
+      });
+
+      var results = await Promise.all(filePromises);
+      ctx.body = results;
+
+      // ctx.status = 200;
+      // ctx.body = "file uploaded!";
+    } catch (error) {
+      console.error(error);
+      ctx.status = 500;
+      ctx.body = error;
+    }
+  }
+};
+
+export const downloadImage = async (ctx) => {
+  // const fileNames = ["Screenshot from 2023-06-20 17-59-11.png", "Readme.md"];
+
+  const fileNames = ctx.request.body;
+  console.log("fileNames : ", fileNames);
+
+  const s3 = new AWS.S3({
+    region: process.env.AWS_S3_BUCKET_REGION,
+    accessKeyId: process.env.AWS_S3_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+  });
+
+  const zipFileName = "myfiles.zip";
+  const zipFile = fs.createWriteStream(`./public/downloads/${zipFileName}`);
+  const archive = archiver("zip", {
+    zlib: { level: 9 },
+  });
+
+  archive
+    .on("warning", (err) => {
+      if (err.code === "ENOENT") {
+        // log warning
+        console.log(`File does not exist.`, err);
+      } else {
+        throw err;
+      }
+    })
+    .on("error", (err) => {
+      throw err;
+    })
+    .pipe(zipFile);
+
+  zipFile.on("close", () => {
+    console.log(archive.pointer(), "total bytes" + zipFile.path);
+    zipFile.end();
+    console.log("zip files created successfully.");
+  });
+
+  for (const key of Object.keys(fileNames)) {
+    // fileNames.forEach((file) => {
+    const params = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: fileNames[key],
+    };
+
+    const s3Stream = s3.getObject(params).createReadStream();
+    archive.append(s3Stream, { name: fileNames[key] });
+    // });
+  }
+
+  await archive.finalize();
+
+  ctx.response.set(
+    "Content-disposition",
+    `attachment; filename=${zipFileName}`
+  );
+
+  ctx.body = fs.createReadStream(zipFile.path);
+  // fs.unlinkSync(zipFile.path);     // remove file from server when user downloaded
+};
+
+export const getImageURL = async (ctx) => {
+  // https://<bucket>.s3.<region>.amazonaws.com/<key>
+
+  const s3 = new AWS.S3({
+    region: process.env.AWS_S3_BUCKET_REGION,
+    accessKeyId: process.env.AWS_S3_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+  });
+
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: "vikram/a.png",
+    Expires: 60 * 5
+  };
+  const fileData = s3.getSignedUrl('getObject', params);
+  console.log("fileData : ", fileData);
 };

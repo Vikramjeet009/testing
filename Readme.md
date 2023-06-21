@@ -1,0 +1,1 @@
+use koa-body which provides support for multipart, urlencoded, and json request bodies. Provides the same functionality as Express's bodyParser - multer.

@@ -13,10 +13,13 @@
   "dependencies": {
     "@koa/cors": "^4.0.0",
     "@prisma/client": "^4.15.0",
+    "archiver": "^5.3.1",
+    "aws-sdk": "^2.1400.0",
     "bcrypt": "^5.1.0",
     "dotenv": "^16.1.4",
     "jsonwebtoken": "^9.0.0",
     "koa": "^2.14.2",
+    "koa-body": "^6.0.1",
     "koa-bodyparser": "^4.4.0",
     "koa-json": "^2.0.2",
     "koa-router": "^12.0.0"
@@ -24,6 +27,7 @@
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^10.2.2",
     "@prisma/studio": "^0.484.0",
+    "morgan": "^1.10.0",
     "nodemon": "^2.0.22",
     "prisma": "^4.15.0",
     "prisma-erd-generator": "^1.6.2"

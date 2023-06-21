@@ -5,6 +5,9 @@ import {
   login,
   myProfile,
   updateProfile,
+  uploadImage,
+  getImageURL,
+  downloadImage,
 } from "../controllers/userController.js";
 import { auth, validateData } from "../middlewares/index.js";
 
@@ -15,6 +18,10 @@ userRouter.post("/login", validateData, login);
 
 userRouter.get("/my-profile", auth, myProfile);
 userRouter.post("/update-profile", auth, validateData, updateProfile);
+
+userRouter.post("/upload-image", uploadImage);
+userRouter.get("/get-image", getImageURL);
+userRouter.post("/download-image", downloadImage);
 
 export default userRouter;
 
