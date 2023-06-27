@@ -350,3 +350,31 @@ enum NotificationTypeEnum {
 // @@id([authorId, postId], name: "authorPostId") - 
 // 		Using the @@id you indicated to prisma that the NewTable had a primary key composed by this two fields,
 // 		We've also passed it an optional name parameter to name the newly created field
+
+
+// model UserDomains {
+//     id Int @id @default(autoincrement())
+
+//     domain           String
+//     registryDomainId String
+//     status           String // clientTransferProhibited : it means the domain cannot be transferred
+//     registrar        String
+
+//     registrantName    String
+//     registrantStreet  String?
+//     registrantCity    String?
+//     registrantState   String?
+//     postalCode        String?
+//     registrantCountry String?
+//     registrantMobile  String
+//     registrantEmail   String
+
+//     domainCreatedOn String
+//     domainUpdatedOn String
+//     domainExpiredOn String
+
+//     updatedAt String?
+//     createdAt String
+
+//     @@map(name: "user_domains")
+// }
