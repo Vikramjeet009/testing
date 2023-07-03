@@ -17,7 +17,7 @@ Please make sure to provide valid database credentials for the database server a
 Solution: sudo systemctl start postgresql.service
 
 
-AWS SES
+# AWS SES
 
 https://betterprogramming.pub/how-to-send-emails-with-node-js-using-amazon-ses-8ae38f6312e4
 
@@ -25,3 +25,9 @@ https://medium.com/@charithwick/sending-emails-using-aws-ses-nodejs-460b8cc6d0d5
 
 
 for templates install aws-cli in ubuntu
+
+# AWS SES with Nodemailer for attachments
+
+https://technotrampoline.com/articles/how-to-use-aws-ses-with-nodemailer/
+
+https://medium.com/@xoor/sending-emails-with-attachments-with-aws-lambda-and-node-js-e6a78500227c

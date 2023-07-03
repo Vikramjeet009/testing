@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import fs from "fs";
 import AWS from "aws-sdk";
 import archiver from "archiver";
+import nodemailer from "nodemailer";
 
 import { AWS_CONFIG } from "../config/keys.js";
 
@@ -315,20 +316,25 @@ export const downloadImage = async (ctx) => {
 
 export const getImageURL = async (ctx) => {
   // https://<bucket>.s3.<region>.amazonaws.com/<key>
+  
+  // const { key } = ctx.request.body;
+  
+  try {
+    const s3 = new AWS.S3(AWS_CONFIG);
 
-  const s3 = new AWS.S3({
-    region: process.env.AWS_REGION,
-    accessKeyId: process.env.AWS_ACCESS_KEY,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  });
+    const params = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: "vikram/reset_root.png",
+      Expires: 60 * 5
+    };
+    const fileData = s3.getSignedUrl('getObject', params);
 
-  const params = {
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: "vikram/a.png",
-    Expires: 60 * 5
-  };
-  const fileData = s3.getSignedUrl('getObject', params);
-  console.log("fileData : ", fileData);
+    ctx.status = 200;
+    ctx.body = { url: fileData, message: "Signed Url" };
+  } catch (error) {
+    ctx.status = 200;
+    ctx.body = "Error while getting signed url.";
+  }
 };
 
 export const sendEmail = async (ctx) => {
@@ -398,4 +404,68 @@ export const sendTemplateEmail = async (ctx) => {
     ctx.status = 400;
     ctx.body = "Email not Sent.";
   }
+};
+
+function getS3File(key) {
+  const s3 = new AWS.S3(AWS_CONFIG);
+  
+  return new Promise(function (resolve, reject) {
+    s3.getObject(
+      {
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: `vikram/${key}`
+      },
+      function (err, data) {
+        if (err) return reject(err);
+        else return resolve(data);
+      }
+    );
+  })
+}
+
+export const mailWithAttachment = async (ctx) => {
+  const { recipientEmail } = ctx.request.body;
+  
+  getS3File('reset_root.png')
+    .then(function (fileData) {
+      var mailOptions = {
+        from: process.env.AWS_SES_SENDER,
+        subject: 'This is an email sent for testing purpose with attachment!',
+        html: `<p>You got a contact message from: <b>${process.env.AWS_SES_SENDER}</b></p>`,
+        to: recipientEmail,
+        // bcc: Any BCC address you want here in an array,
+        attachments: [
+          {
+            filename: "An Attachment.pdf",
+            content: fileData.Body
+          }
+        ]
+      };
+
+      const AWS_SES = new AWS.SES(AWS_CONFIG);
+      
+      // console.log('Creating SES transporter');
+      // create Nodemailer SES transporter
+      var transporter = nodemailer.createTransport({
+        SES: AWS_SES
+      });
+
+      // send email
+      transporter.sendMail(mailOptions, function (err, info) {
+        if (err) {
+          console.log("Error sending email", err);
+          ctx.status = 400;
+          ctx.body = "Error sending email";
+        } else {
+          console.log('Email sent successfully');
+          ctx.status = 200;
+          ctx.body = "Email sent successfully";
+        }
+      });
+    })
+    .catch(function (error) {
+      console.log("Error getting attachment from S3", error);
+      ctx.status = 400;
+      ctx.body = "Error getting attachment from S3";
+    });
 };

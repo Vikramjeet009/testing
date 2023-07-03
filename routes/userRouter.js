@@ -10,6 +10,7 @@ import {
   downloadImage,
   sendEmail,
   sendTemplateEmail,
+  mailWithAttachment,
 } from "../controllers/userController.js";
 import { auth, validateData } from "../middlewares/index.js";
 
@@ -27,6 +28,7 @@ userRouter.post("/download-image", downloadImage);
 
 userRouter.post("/send-email", sendEmail);
 userRouter.post("/send-email-template", sendTemplateEmail);
+userRouter.post("/send-email-with-attachment", mailWithAttachment);
 
 export default userRouter;
 
