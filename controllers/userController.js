@@ -4,6 +4,8 @@ import fs from "fs";
 import AWS from "aws-sdk";
 import archiver from "archiver";
 
+import { AWS_CONFIG } from "../config/keys.js";
+
 import { createAccessToken, hashPassword } from "../utils/index.js";
 
 const prisma = new PrismaClient();
@@ -195,11 +197,7 @@ export const uploadImage = async (ctx) => {
   if (myFiles) {
     try {
       const filePromises = myFiles.map(async (file) => {
-        const s3 = new AWS.S3({
-          region: process.env.AWS_S3_BUCKET_REGION,
-          accessKeyId: process.env.AWS_S3_ACCESS_KEY,
-          secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
-        });
+        const s3 = new AWS.S3(AWS_CONFIG);
 
         //   var { path, name, type } = file;
         var { filepath, newFilename, originalFilename, mimetype } = file;
@@ -261,9 +259,9 @@ export const downloadImage = async (ctx) => {
   console.log("fileNames : ", fileNames);
 
   const s3 = new AWS.S3({
-    region: process.env.AWS_S3_BUCKET_REGION,
-    accessKeyId: process.env.AWS_S3_ACCESS_KEY,
-    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   });
 
   const zipFileName = "myfiles.zip";
@@ -319,9 +317,9 @@ export const getImageURL = async (ctx) => {
   // https://<bucket>.s3.<region>.amazonaws.com/<key>
 
   const s3 = new AWS.S3({
-    region: process.env.AWS_S3_BUCKET_REGION,
-    accessKeyId: process.env.AWS_S3_ACCESS_KEY,
-    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   });
 
   const params = {
@@ -331,4 +329,73 @@ export const getImageURL = async (ctx) => {
   };
   const fileData = s3.getSignedUrl('getObject', params);
   console.log("fileData : ", fileData);
+};
+
+export const sendEmail = async (ctx) => {
+  const { recipientEmail, name } = ctx.request.body;
+  
+  try {
+    let params = {
+      Source: process.env.AWS_SES_SENDER,
+      Destination: {
+        ToAddresses: [
+          recipientEmail
+        ],
+      },
+      ReplyToAddresses: [],
+      Message: {
+        Body: {
+          Html: {
+            Charset: 'UTF-8',
+            Data: 'This is the body of my email!',
+          },
+        },
+        Subject: {
+          Charset: 'UTF-8',
+          Data: `Hello, ${name}!`,
+        }
+      },
+    };
+    
+    const AWS_SES = new AWS.SES(AWS_SES_CONFIG);
+    
+    AWS_SES.sendEmail(params).promise();
+    
+    ctx.status = 200;
+    ctx.body = "Email Sent.";
+
+  } catch (error) {
+    console.log("error : ", error)
+    ctx.status = 400;
+    ctx.body = "Email not Sent.";
+  }
+}
+
+export const sendTemplateEmail = async (ctx) => {
+  const { recipientEmail, name, favoriteanimal } = ctx.request.body;
+  
+  try{
+    let params = {
+      Source: process.env.AWS_SES_SENDER,
+      Template: "MyTemplate",
+      Destination: {
+        ToAddresses: [ 
+          recipientEmail
+        ]
+      },
+      TemplateData: `{ \"name\":\"${name}\", \"favoriteanimal\":\"${favoriteanimal}\" }`
+    };
+    
+    const AWS_SES = new AWS.SES(AWS_CONFIG);
+    
+    AWS_SES.sendTemplatedEmail(params).promise();
+    
+    ctx.status = 200;
+    ctx.body = "Email Sent.";
+    
+  } catch (error) {
+    console.log("error : ", error)
+    ctx.status = 400;
+    ctx.body = "Email not Sent.";
+  }
 };

@@ -1,0 +1,8 @@
+{
+  "Template": {
+    "TemplateName": "SecondTemplate",
+    "SubjectPart": "Hello, {{name}}!",
+    "HTMLPart": "<h1>Hello {{name}},</h1><p>This is an email template.</p>",
+    "TextPart": "Hello {{name}},\r\nThis is an email template"
+  }
+}

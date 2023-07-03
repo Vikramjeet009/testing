@@ -15,3 +15,13 @@ Error: P1000: Authentication failed against database server at `localhost`, the 
 Please make sure to provide valid database credentials for the database server at `localhost`.
 
 Solution: sudo systemctl start postgresql.service
+
+
+AWS SES
+
+https://betterprogramming.pub/how-to-send-emails-with-node-js-using-amazon-ses-8ae38f6312e4
+
+https://medium.com/@charithwick/sending-emails-using-aws-ses-nodejs-460b8cc6d0d5
+
+
+for templates install aws-cli in ubuntu

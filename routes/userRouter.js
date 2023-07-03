@@ -8,6 +8,8 @@ import {
   uploadImage,
   getImageURL,
   downloadImage,
+  sendEmail,
+  sendTemplateEmail,
 } from "../controllers/userController.js";
 import { auth, validateData } from "../middlewares/index.js";
 
@@ -22,6 +24,9 @@ userRouter.post("/update-profile", auth, validateData, updateProfile);
 userRouter.post("/upload-image", uploadImage);
 userRouter.get("/get-image", getImageURL);
 userRouter.post("/download-image", downloadImage);
+
+userRouter.post("/send-email", sendEmail);
+userRouter.post("/send-email-template", sendTemplateEmail);
 
 export default userRouter;
 
