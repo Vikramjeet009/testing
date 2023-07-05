@@ -5,7 +5,7 @@ import AWS from "aws-sdk";
 import archiver from "archiver";
 import nodemailer from "nodemailer";
 
-import { AWS_CONFIG } from "../config/keys.js";
+import { AWS_CONFIG, AWS_CLOUDFRONT_CONFIG } from "../config/keys.js";
 
 import { createAccessToken, hashPassword } from "../utils/index.js";
 
@@ -469,3 +469,81 @@ export const mailWithAttachment = async (ctx) => {
       ctx.body = "Error getting attachment from S3";
     });
 };
+
+// get file from s3 bucket using cloudfront cdn (signed)
+export const getFileFromS3UsingCDN = async (ctx) => {
+  try {
+    // const cloudFront = new AWS.CloudFront.Signer(AWS_CLOUDFRONT_CONFIG);
+    const cloudFront = new AWS.CloudFront.Signer(process.env.AWS_CLOUDFRONT_PUBLIC_KEY_ID, process.env.AWS_CLOUDFRONT_PRIVATE_KEY);
+
+    cloudFront.getSignedUrl({
+      url: `https://${process.env.AWS_CLOUDFRONT_DOMAIN_NAME}/canonical.png`,
+      expires: Math.floor((new Date()).getTime() / 1000) + (60 * 60 * 1) // Current Time in UTC + time in seconds, (60 * 60 * 1 = 1 hour)
+    }, (err, url) => {
+      if (err) {
+        console.log("error : ", err)
+        ctx.status = 400;
+        ctx.body = { err, message: "Failed" };
+      };
+      // console.log(url);
+      
+      ctx.status = 200;
+      ctx.body = { url, message: "Success"};
+    });
+    
+  } catch (error) {
+    console.log("error : ", error)
+    ctx.status = 400;
+    ctx.body = "Failed.";
+  }
+}
+
+export const deleteFileFromS3 = async (ctx) => {
+  try {
+    const s3 = new AWS.S3(AWS_CONFIG);
+    const cloudFront = new AWS.CloudFront(AWS_CLOUDFRONT_CONFIG);
+    
+    const deleteParams = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: "canonical.png",
+    };
+
+    s3.deleteObject(deleteParams, (error, data) => {
+      if (error) {
+          console.log("Error: Object delete failed.", error);
+          ctx.status = 400;
+          ctx.body = "Failed.";
+      } 
+    });
+  
+    const invalidateCloudFrontParams = {
+      DistributionId: process.env.AWS_CLOUDFRONT_DESTRIBUTION_ID,
+      InvalidationBatch: {
+        CallerReference: "canonical.png",
+        Paths: {
+          Quantity: 1,
+          Items: [
+            "/canonical.png"
+          ]
+        }
+      }
+    }
+    
+    // TODO : not working
+    cloudFront.createInvalidation(invalidateCloudFrontParams, (error, data) =>  {
+      if (error) {
+        console.log("Error: Object invalidation failed.", error);
+        ctx.status = 400;
+        ctx.body = "Failed.";
+      }
+    });
+    
+    ctx.status = 200;
+    ctx.body = "File Deleted and Cloudfront is invalidated.";
+    
+  } catch (error) {
+    console.log("error : ", error)
+    ctx.status = 400;
+    ctx.body = "Failed.";
+  }
+}
