@@ -6,8 +6,12 @@ import {
   myProfile,
   updateProfile,
   uploadImage,
+  uploadUrlImage,
   getImageURL,
+  getSignedURLs,
+  getUnsignedUrl,
   downloadImage,
+  deleteImage,
   sendEmail,
   sendTemplateEmail,
   mailWithAttachment,
@@ -25,8 +29,12 @@ userRouter.get("/my-profile", auth, myProfile);
 userRouter.post("/update-profile", auth, validateData, updateProfile);
 
 userRouter.post("/upload-image", uploadImage);
+userRouter.get("/upload-image-via-url", uploadUrlImage);
 userRouter.get("/get-image", getImageURL);
+userRouter.get('/get-images', getSignedURLs);
+userRouter.get('/get-unsigned-url', getUnsignedUrl);
 userRouter.post("/download-image", downloadImage);
+userRouter.get("/delete-image", deleteImage);
 
 userRouter.post("/send-email", sendEmail);
 userRouter.post("/send-email-template", sendTemplateEmail);
@@ -39,5 +47,3 @@ userRouter.get("/aws-cdn", getFileFromS3UsingCDN);
 userRouter.get("/delete-file", deleteFileFromS3);
 
 export default userRouter;
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNoeWFta3VtYXIiLCJlbWFpbCI6InNoeWFtM0BtYWlsLmNvbSIsInBhc3N3b3JkIjoiJDJiJDEyJFpReFllaUlCeGV2YW9TUExTUVo4WmV2WDMvQ2htMWJ3M1k0RVpsQkZMc3BsbGI0OW1CcXFLIiwiaWF0IjoxNjg2OTA0Njc5fQ.FUITxsdOptWUy8xWSL2LzYf6fp9kYGUDF9sdNOzTNNI

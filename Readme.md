@@ -90,3 +90,9 @@ after that create a Key groups & select above created key in it
 
 copy ID of newly created public key & paste it in .env (it will be used as public key reference) 
 
+
+
+
+# Get mime type from url of file
+file-type   (recommended)
+mime-type
