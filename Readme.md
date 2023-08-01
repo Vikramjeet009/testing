@@ -92,6 +92,21 @@ copy ID of newly created public key & paste it in .env (it will be used as publi
 
 
 
+# AWS CloudFormation
+
+CloudFormation Intro - https://www.youtube.com/watch?v=jhWBn6pPTN4
+
+Resize images on the fly, Watch - https://www.youtube.com/watch?v=uVk-ffHeV7c
+
+Sample CloudFormation Template - https://docs.aws.amazon.com/solutions/latest/serverless-image-handler/aws-cloudformation-template.html
+
+serverless-image-handler.template: – Use this template to launch the solution and all associated components. The default configuration deploys CloudFront, API Gateway, Lambda, and Amazon S3.
+
+Before you launch the solution’s AWS CloudFormation template, you must specify an S3 bucket in the Source Buckets template parameter. Use this S3 bucket to store the images that you want to manipulate. If you have multiple image source S3 buckets, you can specify them as comma-separated values. For lower latency, use an S3 bucket in the same AWS Region where you launch your CloudFormation template.
+
+Supported Thumbor Filters - https://docs.aws.amazon.com/solutions/latest/serverless-image-handler/use-supported-thumbor-filters.html
+
+
 
 # Get mime type from url of file
 file-type   (recommended)
