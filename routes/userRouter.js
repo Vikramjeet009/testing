@@ -12,6 +12,7 @@ import {
   getUnsignedUrl,
   downloadImage,
   deleteImage,
+  resizeImage,
   sendEmail,
   sendTemplateEmail,
   mailWithAttachment,
@@ -35,6 +36,7 @@ userRouter.get('/get-images', getSignedURLs);
 userRouter.get('/get-unsigned-url', getUnsignedUrl);
 userRouter.post("/download-image", downloadImage);
 userRouter.get("/delete-image", deleteImage);
+userRouter.get("/resize-image", resizeImage);
 
 userRouter.post("/send-email", sendEmail);
 userRouter.post("/send-email-template", sendTemplateEmail);

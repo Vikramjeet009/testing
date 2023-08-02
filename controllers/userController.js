@@ -8,6 +8,8 @@ import nodemailer from "nodemailer";
 import pkg from "file-type";
 // import { fromBuffer } from "file-type";
 import axios from "axios";
+import sharp from "sharp";
+import got from "got";
 
 import { AWS_CONFIG, AWS_CLOUDFRONT_CONFIG } from "../config/keys.js";
 
@@ -381,8 +383,8 @@ export const getImageURL = async (ctx) => {
 export const getSignedURLs = async (ctx) => {
     try {
         const fileName = [
-            "images/8b71ba4316ce15e1416bc9e00",
-            "images/8b71ba4316ce15e1416bc9e01",
+            "images/70348e05afb76c7902fa85700",
+            "images/70348e05afb76c7902fa85701",
         ];
 
         let signedURL = [];
@@ -433,7 +435,7 @@ export const getUnsignedUrl = async (ctx) => {
 
     const params = {
         Bucket: "qafto-testing/images",
-        Key: "images/8b71ba4316ce15e1416bc9e00", // 'images/reset_root.png'
+        Key: "images/70348e05afb76c7902fa85700", // 'images/reset_root.png'
         // Expires: 30 * 60,					// 30 minutes
     };
 
@@ -483,35 +485,134 @@ export const uploadUrlImage = async (ctx) => {
 
         const type = metaData?.mime.split("/")[0];
 
-        let folderName = '';
+        let folderName = "";
 
-        if (type == 'image') {
-          folderName = 'images';
-        } else if (type == 'video') {
-          folderName = 'videos';
-        } else if (type == 'audio') {
-          folderName = 'audios';
-        } else if (type == 'application') {
-          folderName = 'documents';
+        if (type == "image") {
+            folderName = "images";
+        } else if (type == "video") {
+            folderName = "videos";
+        } else if (type == "audio") {
+            folderName = "audios";
+        } else if (type == "application") {
+            folderName = "documents";
         } else {
-          return "invalid image format";
+            return "invalid image format";
         }
 
-        const random_img_name = Date.now().toString(36) + Math.random().toString(36).substring(2);
+        const random_img_name =
+            Date.now().toString(36) + Math.random().toString(36).substring(2);
 
         const s3 = new AWS.S3(AWS_CONFIG);
 
         const upload = await s3
-          .upload({
-            Bucket: `qafto-testing/${folderName}`,
-            Key: random_img_name,				// lkm95zj5nkrm1ivau4i
-            Body: data,
-          })
-          .promise();
+            .upload({
+                Bucket: `qafto-testing/${folderName}`,
+                Key: random_img_name, // lkm95zj5nkrm1ivau4i
+                Body: data,
+            })
+            .promise();
 
         ctx.body = upload;
     } catch (error) {
         console.log(error);
+    }
+};
+
+const getSignedURL = async (fileName) => {
+    try {
+        // console.log(fileName)
+        // images/6b528121feb70a93d82b80101
+        const split_filename = fileName.split("/");
+
+        const filename = split_filename[1];
+        let folderName = "";
+
+        if (split_filename[0] == "images") {
+            folderName = "images";
+        } else if (split_filename[0] == "videos") {
+            folderName = "videos";
+        } else if (split_filename[0] == "uploads") {
+            folderName = "uploads";
+        } else {
+            return "invalid image format";
+        }
+
+        const s3 = new AWS.S3(AWS_CONFIG);
+
+        const params = {
+            Bucket: `qafto-testing/${folderName}`,
+            Key: filename, // 'images/reset_root.png'
+            Expires: 30 * 60, // 30 minutes
+        };
+
+        const signedURL = s3.getSignedUrl("getObject", params);
+        // console.log(signedURL)
+        return signedURL;
+
+        /* Eg :
+            https://qafto-testing.s3.ap-south-1.amazonaws.com/vikram/reset_root?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIASKKJRWLSQXNIGVNG%2F20230725%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20230725T050612Z&X-Amz-Expires=300&X-Amz-Signature=4ac6bcb1263c92b918e4cbfdd5bcf2f53a1191f97a521331d48fb189bbca07cd&X-Amz-SignedHeaders=host
+        */
+    } catch (error) {
+        return "Error while getting signed url.";
+    }
+};
+
+export const resizeImage = async (ctx) => {
+    try {
+        const queryData = ctx.request.query;
+        // console.log("queryData : ", queryData);
+
+        let imageName = queryData.name;
+        let width = parseInt(queryData.width);
+        let height = parseInt(queryData.height);
+
+        const signedURL = await getSignedURL(`images/${imageName}`);
+        // console.log(signedURL);
+
+        const { data } = await axios.get(signedURL, {
+            responseType: "arraybuffer",
+        });
+
+        // var transformer = await sharp(data)
+        //     .resize(width, height)
+        //     // .toFile("output.png");
+        //     .toFormat("jpeg")
+        //     .toBuffer();
+
+        var transformer = sharp()
+            .resize(width, height)
+            // .toFile("output.png");
+            .on("info", function (outputBuffer) {
+                // outputBuffer contains JPEG image data
+                // no wider and no higher than 200 pixels
+                // and no larger than the input image
+                // console.log(outputBuffer);
+                return outputBuffer;
+            });
+
+        // const imageBase64 = `data:image/png;base64,${transformer.toString('base64')}`;
+
+        // console.log("transformer : ", transformer);
+        // console.log(imageBase64);
+        // console.log("transformer : ", imagefrombuffer({...transformer}));
+        // ctx.status = 200;
+        // ctx.body = { data: imageBase64 };
+
+        // ctx.body = imageBase64;
+        ctx.body = transformer;
+
+        // return imageBase64;
+        // .on("info", function (info) {
+        //     // console.log('Image height is ' + info.height);
+        //     console.log("Image height is ");
+        // });
+
+        // readableStream.pipe(transformer).pipe(writableStream);
+        // ctx.body = transformer;
+        // /********* Using GOT */
+        got.stream(signedURL).pipe(transformer).pipe(ctx.body);
+    } catch (error) {
+        console.log("error : ", error);
     }
 };
 

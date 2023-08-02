@@ -107,6 +107,10 @@ Before you launch the solution’s AWS CloudFormation template, you must specify
 Supported Thumbor Filters - https://docs.aws.amazon.com/solutions/latest/serverless-image-handler/use-supported-thumbor-filters.html
 
 
+Bucket Changes required : 
+Edit Object Ownership - ACLs Enabled, choose Bucket owner preferred
+Edit Block public access (bucket settings) - Uncheck Block all public access
+
 
 # Get mime type from url of file
 file-type   (recommended)
