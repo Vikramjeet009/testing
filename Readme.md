@@ -115,3 +115,25 @@ Edit Block public access (bucket settings) - Uncheck Block all public access
 # Get mime type from url of file
 file-type   (recommended)
 mime-type
+
+
+
+# connect strapi with aws
+[
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "GET"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": [],
+        "MaxAgeSeconds": 3000
+    }
+]
+
+
+]
