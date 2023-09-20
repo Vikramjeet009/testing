@@ -46,7 +46,17 @@ Follow this playlist - https://youtube.com/playlist?list=PL0X6fGhFFNTeGDRuMlQBO1
 
 create cloudfront cdn - https://www.youtube.com/watch?v=kbI7kRWAU-w
 
-after creating cdn, update the s3 bucket policy, copy policy statement and paste it in "Bucket policy"
+when creating cloudfron cdn distribution follow these points
+    - select Origin access control settings (recommended) option in Origin access, select bucket related control setting or
+            create new one by clicking on Create Control Setting button.
+    - update the s3 bucket policy, copy policy statement and paste it in "Bucket policy"
+    - select Redirect HTTP to HTTPS option in Viewer
+
+
+create new bucket with 
+    - Block public access (bucket settings) - block all
+    - Object Ownership - ACLs disabled (recommended)
+
 
 policy statement will be like this -
 {
@@ -72,7 +82,7 @@ policy statement will be like this -
 
 Now you can access any s3 bucket object like this - 
 
-https://cdn_domain_name/file_name_in_bucket
+https://cdn_domain_name/folder_name/file_name_in_bucket
 
 
 
@@ -135,5 +145,3 @@ mime-type
     }
 ]
 
-
-]
