@@ -58,6 +58,9 @@ create new bucket with
     - Object Ownership - ACLs disabled (recommended)
 
 
+or follow this article - https://www.stormit.cloud/blog/cloudfront-origin-access-control/
+https://www.velotio.com/engineering-blog/s3-cloudfront-to-deliver-static-asset
+
 policy statement will be like this -
 {
     "Version": "2008-10-17",
@@ -86,6 +89,108 @@ https://cdn_domain_name/folder_name/file_name_in_bucket
 
 
 
+
+# connect custom domain name to cloudfront cdn distribution
+
+
+CloudFront
+    Amazon CloudFront is a content delivery network (CDN) that speeds up the delivery of your static and dynamic web content, such as HTML, CSS, JavaScript, and images, to your users. CloudFront caches your content at edge locations around the world, so your users can access it quickly and reliably. This reduces latency and improves the user experience.
+
+Route53
+    Amazon Route53 is a scalable and highly available Domain Name System (DNS) service that translates domain names, such as example.com, into IP addresses that computers use to connect to each other over the internet. Route53 also supports domain registration and health checking.
+
+
+
+-> if you purchased domain from aws follow below steps
+
+
+https://www.youtube.com/watch?v=M0GfSXr75iU
+https://www.youtube.com/watch?v=ookzXuMr8eY&list=PLNk96vmHRIyBff3nVjrMwrctTBdEMFgRg&index=3
+
+
+2 steps to do 
+    1. create ACM certificate
+    2. create hosted zone in route 53
+    
+
+Search AWS Certificate Manager (ACM) in search box
+    # Important : make sure you create ACM certificate in US East (N. Virginia) (us-east-1) region else it will not work. Because, CloudFront being an AWS service which is not tied to any specific region, it will use the certificates from US East region only.
+    
+    - Request certificate > choose Request a public certificate
+    - enter domain or sub-domain name for which you want to get certificate
+    - select DNS validation - recommended in Validation method
+    
+certificate is created & its status is Pending validation
+    - copy CNAME name & CNAME value and create a CNAME record in DNS provides
+        CNAME name : _9caedb51d06ea3fe2fba3b78193cfa4e.cdn.qafto.com.
+        CNAME value : _ceefedd20d1c034f66854ef15cdb3404.vkznmzfykm.acm-validations.aws.
+
+        add value like this
+        CNAME name : _9caedb51d06ea3fe2fba3b78193cfa4e.cdn
+        CNAME value : _ceefedd20d1c034f66854ef15cdb3404.vkznmzfykm.acm-validations.aws
+        
+search Route 53
+    - Hosted zones > Create Hosted zone
+    - enter domain name (not sub domain name)
+    
+    go back to acm certificate
+        - Click on Create record in Route 53 button
+
+
+    When ACM certificate's status changes to Issued
+        - go back to cloudfront cdn distribution
+        - add Alternate domain name (CNAME) - optional
+        - add or select Custom SSL certificate - optional
+        - save changes
+        
+    Go back to Route 53
+        - create new record
+        - enter sub-domain name
+        - Record type : A - Routes traffic to an IPv4 address and some AWS resources
+        - enable Alias
+        - select Alias to Cloudfront distribution in Choose endpoint section
+        - select cloudfront cdn distribution in Choose distribution section
+        - create record
+    
+    
+    
+    
+    
+    
+-> If domain is purchased from other dns servers then follow below steps
+
+https://www.youtube.com/watch?v=WGvxnfZjV8g
+
+OR follow below steps
+    
+Search AWS Certificate Manager (ACM) in search box
+    # Important : make sure you create ACM certificate in US East (N. Virginia) (us-east-1) region else it will not work. Because, CloudFront being an AWS service which is not tied to any specific region, it will use the certificates from US East region only.
+    
+    - Request certificate > choose Request a public certificate
+    - enter domain or sub-domain name for which you want to get certificate
+    - select DNS validation - recommended in Validation method
+    
+certificate is created & its status is Pending validation
+    - copy CNAME name & CNAME value and create a CNAME record in DNS provides
+        CNAME name : _9caedb51d06ea3fe2fba3b78193cfa4e.cdn.qafto.com.
+        CNAME value : _ceefedd20d1c034f66854ef15cdb3404.vkznmzfykm.acm-validations.aws.
+
+        add value like this
+        CNAME name : _9caedb51d06ea3fe2fba3b78193cfa4e.cdn
+        CNAME value : _ceefedd20d1c034f66854ef15cdb3404.vkznmzfykm.acm-validations.aws
+    
+    when certificate is issued, create 1 more CNAME record in DNS provider
+    
+        add value like this
+        CNAME name : cdn (sub-domain name only)
+        CNAME value : d3scn93lypf6f2.cloudfront.net (cloudfront distribution default domain name)
+        
+    wait for some 10-15 min and cdn will be active
+    
+    
+    
+        
+    
 Created signed CDN urls
 
 Watch - https://www.youtube.com/watch?v=EIYrhbBk7do
