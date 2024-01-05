@@ -33,10 +33,47 @@ https://technotrampoline.com/articles/how-to-use-aws-ses-with-nodemailer/
 https://medium.com/@xoor/sending-emails-with-attachments-with-aws-lambda-and-node-js-e6a78500227c
 
 
+# Generate AWS Access Key and Secret
+    1. Login to Account
+    2. Click on top-right corner dropdown and select Security Credentials
+    3. Scroll down and search fot Access Keys
+    4. Clik on Create access key to generate new access key and secret
+    Note: do not create access key and secret from root account as it may cause some security problems
+
 
 # AWS S3 
 
 while creating bucket make sure to enable versioning
+
+
+# connect aws with strapi
+    go to Permissions tab and edit
+    
+    1. Block public access (bucket settings)
+        check last 2 optiona only i.e.
+            Block public access to buckets and objects granted through new public bucket or access point policies
+            &
+            Block public and cross-account access to buckets and objects through any public bucket or access point policies
+
+    2. Edit Object Ownership and select ACLs enabled
+
+    3. Edit Cross-origin resource sharing (CORS), paste below code
+        [
+            {
+                "AllowedHeaders": [
+                    "*"
+                ],
+                "AllowedMethods": [
+                    "GET"
+                ],
+                "AllowedOrigins": [
+                    "http://localhost:1337",
+                    "https://app.qafto.com"
+                ],
+                "ExposeHeaders": [],
+                "MaxAgeSeconds": 3000
+            }
+        ]
 
 
 # AWS CLOUDFRONT (CDN)
@@ -51,6 +88,7 @@ when creating cloudfron cdn distribution follow these points
             create new one by clicking on Create Control Setting button.
     - update the s3 bucket policy, copy policy statement and paste it in "Bucket policy"
     - select Redirect HTTP to HTTPS option in Viewer
+    - select Web Application Firewall (WAF) > Do not enable security protections
 
 
 create new bucket with 
@@ -179,6 +217,11 @@ certificate is created & its status is Pending validation
         CNAME name : _9caedb51d06ea3fe2fba3b78193cfa4e.cdn
         CNAME value : _ceefedd20d1c034f66854ef15cdb3404.vkznmzfykm.acm-validations.aws
     
+    edit newly created distribution
+        Settings > Edit
+        - Add Item in Alternate domain name (CNAME) - optional, enter domain name
+        - choose ssl certifiate > Custom SSL certificate - optional
+    
     when certificate is issued, create 1 more CNAME record in DNS provider
     
         add value like this
@@ -186,9 +229,7 @@ certificate is created & its status is Pending validation
         CNAME value : d3scn93lypf6f2.cloudfront.net (cloudfront distribution default domain name)
         
     wait for some 10-15 min and cdn will be active
-    
-    
-    
+
         
     
 Created signed CDN urls
