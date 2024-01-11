@@ -75,6 +75,66 @@ while creating bucket make sure to enable versioning
             }
         ]
 
+# steps to configure strapi
+
+    1. install @strapi/provider-upload-aws-s3 package in strapi
+    
+    2. create plugins.js file inside config folder & paste below code in it
+        
+        module.exports = ({ env }) => ({
+            // aws s3 plugin
+            upload: {
+                config: {
+                    provider: 'aws-s3',
+                    providerOptions: {
+                        // set base cdn url, it will return files by attaching specified cdn url to it
+                        // eg: https://usercdn.qafto.com/folder_name/media_name (with or without extension)
+                        baseUrl: env('CDN_URL'),
+
+                        // upload files in specified folder, eg: folder_1/media_name
+                        rootPath: `${env('UNIQUE_USER_ID')}/`,
+
+                        accessKeyId: env('AWS_ACCESS_KEY_ID'),
+                        secretAccessKey: env('AWS_ACCESS_SECRET'),
+                        region: env('AWS_REGION'),
+                        params: {
+                            ACL: env('AWS_ACL', 'public-read'),
+                            signedUrlExpires: env('AWS_SIGNED_URL_EXPIRES', 15 * 60),
+                            Bucket: env('AWS_BUCKET'),
+                        },
+                    },
+                    actionOptions: {
+                        upload: {},
+                        uploadStream: {},
+                        delete: {},
+                    },
+                    breakpoints: {        // un-comment to generate images based on breakpoints
+                        // xlarge: 1920,
+                        // large: 1000,
+                        // medium: 750,
+                        // small: 500,
+                        // xsmall: 64
+                    },
+                },
+            },
+        });
+
+
+        above code will prevent from uploading multiple image formats to strapi (large, medium, small), but to avoid uploading thumbnail format
+        create a file inside src > extensions > upload > strapi-server.js , copy & paste below code in that file
+        
+        // avoid uploading thumbnail when uploading image
+        module.exports = (plugin) => {
+            var imageManipulation = plugin.services['image-manipulation'];
+            plugin.services['image-manipulation'] = () => {
+                return {
+                    ...imageManipulation(),
+                    generateThumbnail: () => { }
+                };
+            };
+            return plugin;
+        };
+
 
 # AWS CLOUDFRONT (CDN)
 
