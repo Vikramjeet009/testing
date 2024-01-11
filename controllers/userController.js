@@ -382,10 +382,7 @@ export const getImageURL = async (ctx) => {
 
 export const getSignedURLs = async (ctx) => {
     try {
-        const fileName = [
-            "images/70348e05afb76c7902fa85700",
-            "images/70348e05afb76c7902fa85701",
-        ];
+        const { fileName } = ctx.request.body;
 
         let signedURL = [];
 
@@ -409,7 +406,7 @@ export const getSignedURLs = async (ctx) => {
             const s3 = new AWS.S3(AWS_CONFIG);
 
             const params = {
-                Bucket: "qafto-testing/images",
+                Bucket: `${process.env.AWS_S3_BUCKET_NAME}/images`,
                 Key: filename, // 'images/reset_root.png'
                 Expires: 30 * 60, // 30 minutes
             };

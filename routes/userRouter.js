@@ -32,7 +32,7 @@ userRouter.post("/update-profile", auth, validateData, updateProfile);
 userRouter.post("/upload-image", uploadImage);
 userRouter.get("/upload-image-via-url", uploadUrlImage);
 userRouter.get("/get-image", getImageURL);
-userRouter.get('/get-images', getSignedURLs);
+userRouter.post('/get-images', getSignedURLs);
 userRouter.get('/get-unsigned-url', getUnsignedUrl);
 userRouter.post("/download-image", downloadImage);
 userRouter.get("/delete-image", deleteImage);
