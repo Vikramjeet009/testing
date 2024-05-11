@@ -2,6 +2,9 @@ use koa-body which provides support for multipart, urlencoded, and json request 
 
 # PRISMA
 
+Generate ERD Diagram : npx prisma generate
+or online throught : https://prisma-erd.simonknott.de/
+
 onDelete: Cascade - Deleting a referenced record will trigger the deletion of referencing record.
 
 @@id([authorId, postId], name: "authorPostId") -
@@ -351,3 +354,8 @@ mime-type
     }
 ]
 
+
+
+
+# create IAM user
+https://www.geeksforgeeks.org/how-to-create-an-iam-user-in-aws/
