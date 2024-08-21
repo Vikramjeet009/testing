@@ -359,3 +359,55 @@ mime-type
 
 # create IAM user
 https://www.geeksforgeeks.org/how-to-create-an-iam-user-in-aws/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# incrase nginx file upload limit
+    sudo nano /etc/nginx/nginx.conf
+    
+    add below line only
+        client_max_body_size 10M;
+        
+        
+        
+# increase file upload limit in koa (koa-body)
+
+    // Conditional koa-body middleware
+    app.use(async (ctx, next) => {
+
+        if (ctx.path.includes('large')) {
+            // Apply koa-body with specific options
+            await koaBody({
+                formLimit: "10mb", // Modify form body limit
+                // jsonLimit: "256mb", // Modify JSON body limit
+                // textLimit: "256mb", // Modify text body limit
+                formidable: {
+                    maxFileSize: 200 * 1024 * 1024, // Limit for uploaded file size
+                },
+                multipart: true,
+                urlencoded: true
+            })(ctx, next);
+
+        } else {
+            // Apply koa-body with default options
+            await koaBody({
+                multipart: true,
+                urlencoded: true
+            })(ctx, next);
+        }
+    });
