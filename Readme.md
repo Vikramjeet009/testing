@@ -382,7 +382,9 @@ https://www.geeksforgeeks.org/how-to-create-an-iam-user-in-aws/
     
     add below line only
         client_max_body_size 10M;
-        
+
+    restart nginx
+        sudo systemctl reload nginx
         
         
 # increase file upload limit in koa (koa-body)
@@ -411,3 +413,25 @@ https://www.geeksforgeeks.org/how-to-create-an-iam-user-in-aws/
             })(ctx, next);
         }
     });
+
+
+
+
+
+
+
+
+Postgres DB connection in strapi
+
+    DATABASE_CLIENT=postgres
+    DATABASE_URL="postgres://postgres:password@localhost:5432/strapi"
+
+    OR
+
+    DATABASE_HOST='localhost'
+    DATABASE_PORT=5433
+    DATABASE_NAME='strapi'
+    DATABASE_USERNAME='postgres'
+    DATABASE_PASSWORD='password'
+
+    Note: make sure to create database in postgres first
